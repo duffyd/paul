@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block content %}
+	<h2>{% block title %}{{ title }}{% endblock %}</h2>
+	<table class="highlight">
+		<thead>
+			<tr>
+				<th></th>
+				<th>Username</th>
+				<th>E-mail</th>
+				<th>Selected Tour</th>
+				<th>Created</th>
+				<th>Score</th>
+			</tr>
+		</thead>
+
+		<tbody>
+			{% for user in users %}
+				<tr>
+					<td>
+						<a id="edit-{{ user.id }}" class="edit-item btn-floating btn-small waves-effect waves-light"><i class="tiny material-icons">edit</i></a>
+						<a id="del-{{ user.id }}" class="del-item btn-floating btn-small waves-effect waves-light red"><i class="tiny material-icons">delete</i></a></td>
+					<td>{{ user.username }}</td>
+					<td>{{ user.email }}</td>
+					<td>{{ user.sel_tour }}</td>
+					<td>{{ user.created_at.strftime("%d/%m/%Y") }}</td>
+					<td>{{ user.score }}</td>
+				</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+{% endblock %}

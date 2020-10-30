@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block content %}
+	<h2>{% block title %}{{ title }}{% endblock %}</h2>
+	<table class="highlight">
+		<thead>
+			<tr>
+				<th></th>
+				<th>Tour</th>
+				<th>Location</th>
+				<th>Type</th>
+				<th>Content</th>
+				<th>Result</th>
+				<th>Score</th>
+			</tr>
+		</thead>
+
+		<tbody>
+			{% for card in cards %}
+				<tr>
+					<td>
+						<a id="edit-{{ card.id }}" class="edit-item btn-floating btn-small waves-effect waves-light"><i class="tiny material-icons">edit</i></a>
+						<a id="del-{{ card.id }}" class="del-item btn-floating btn-small waves-effect waves-light red"><i class="tiny material-icons">delete</i></a></td>
+					<td>{{ card.tour and card.tour or '' }}</td>
+					<td>{{ card.location }}</td>
+					<td>{{ card.type }}</td>
+					<td>{{ card.content }}</td>
+					<td>{{ card.result }}</td>
+					<td>{{ card.score }}</td>
+				</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+	<div class="fixed-action-btn">
+		<a class="btn-floating btn-large red">
+			<i class="large material-icons">more_vert</i>
+		</a>
+		<ul>
+			<li><a title="Add Card" class="btn-floating blue" href="{{ url_for('card_add') }}"><i class="material-icons">add</i></a></li>
+		</ul>
+	</div>
+	<script>
+		$(document).ready(function() {
+			$('.fixed-action-btn').floatingActionButton();
+		});
+	</script>
+{% endblock %}

@@ -1,0 +1,80 @@
+body {
+	padding: 0;
+	margin: 0;
+	height: calc(100% - 64px);
+}
+html {
+	height: 100%;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+.map, #map {
+	height: -moz-available;
+	height: -webkit-fill-available;
+	height: fill-available;
+}
+.box-wrapper {
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	margin:0 auto;
+	margin-top: -50px;
+	margin-left: -50px;
+}
+.box {
+	width: 300px;
+	text-align: center;
+	height: 300px;
+	display: none;
+}
+.select-wrapper+label {
+	top: 0;
+}
+.scores {
+	font: 1.5em Roboto, sans-serif;
+	padding: 6px 8px;
+	background: rgba(255, 255, 255, 0.8);
+	border-radius: 5px;
+	line-height: 1.3em;
+	color: #333;
+}
+.scores .heading {
+	font-weight: bold;
+}
+.scores .subheading {
+	text-decoration: underline;
+}
+.scores game-over {
+	text-decoration: line-through;
+}
+.preloader-wrapper {
+	display: none;
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	margin:0 auto;
+	margin-top: -50px;
+	margin-left: -50px;
+}
+select.browser-default {
+	border: none;
+}
+select.browser-default:focus {
+	outline: none;
+}
+.leaflet-tooltip {
+	background-color: transparent !important;
+	border: none !important;
+	color: black;
+	font: 1.1em Roboto, sans-serif;
+	font-weight: bold;
+}
+.leaflet-tooltip-bottom:before,
+.leaflet-tooltip-left:before,
+.leaflet-tooltip-right:before,
+.leaflet-tooltip-top:before {
+	border: none !important;
+}
+nav .brand-logo {
+	font-family: 'Cinzel', serif;
+}

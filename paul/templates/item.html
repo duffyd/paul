@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block content %}
+	<h2>{% block title %}{{ title }}{% endblock %}</h2>
+	{% from "_formhelpers.html" import render_field %}
+	<form method="POST">
+		{{ form.hidden_tag() }}
+		{% for field in form %}
+			{% if field.type != 'SubmitField' %}
+				{{ render_field(field) }}
+			{% endif %}
+		{% endfor %}
+		<div class="input-field" >
+			{{ form.submit(class="btn") }}
+		</div>
+	</form>
+{% endblock %}

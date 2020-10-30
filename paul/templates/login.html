@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block content %}
+	{% from "_formhelpers.html" import render_field %}
+	<h1>Log In</h1>
+	<form action="" method="post" novalidate>
+		{{ form.hidden_tag() }}
+		{% for field in form %}
+			{% if field.type != 'SubmitField' %}
+				{{ render_field(field) }}
+			{% endif %}
+		{% endfor %}
+		<div class="input-field" >
+			{{ form.submit(class="btn") }}
+		</div>
+	</form>
+	<p>New User? <a href="{{ url_for('register') }}">Click to Register!</a></p>
+{% endblock %}

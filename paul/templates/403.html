@@ -1,0 +1,7 @@
+{% extends 'base.html' %}
+
+{% block content %}
+	<h2>{% block title %}Unauthorised{% endblock %}</h2>
+	<p class="flow-text">You are not authorised to access this page.</p>
+	<p class="flow-text"><a href="{{ url_for('login') }}">Return to game</a></p>
+{% endblock %}

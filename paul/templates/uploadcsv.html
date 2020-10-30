@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block content %}
+	<h2>{{ title }}</h2>
+	<div class="row">
+		<form id="form" class="col s12" novalidate="novalidate" method="post" accept-charset="utf-8" enctype="multipart/form-data">
+			<input type="hidden" name="dont_delete_card"/>
+			<div class="row">
+				<div class="file-field input-field">
+					<div class="btn">
+						<span>CSV file</span>
+						<input type="file" name="csvfile" class="validate" value="" />
+					</div>
+					<div class="file-path-wrapper">
+						<input class="file-path" type="text">
+						<span class="helper-text"></span>
+					</div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="input-field col s12">
+					<select id="upload_type" name="upload_type" required="required" class="validate">
+						<option value="" disabled selected>Specify one</option>
+						<option value="cards">Cards</option>
+					</select>
+					<label for="upload_type">Upload type</label>
+					<span class="helper-text"></span>
+				</div>
+			</div>
+			<div class="row">
+				<button id="upload-btn" class="btn waves-effect waves-light" type="submit" name="action">Upload
+					<i class="material-icons right">file_upload</i>
+				</button>
+				<div class="progress" style="display: none">
+					<div class="indeterminate"></div>
+				</div>
+			</div>
+		</form>
+	</div>
+	<div id="modal1" class="modal">
+		<div class="modal-content">
+			<h4>Shared Hall Message</h4>
+			<p>A bunch of text</p>
+		</div>
+		<div class="modal-footer">
+			<a href="#!" id="yes-button" class="modal-close waves-effect waves-green btn-flat">Yes</a>
+			<a href="#!" id="no-button" class="modal-close waves-effect waves-red btn-flat">No</a>
+		</div>
+	</div>
+	<script>
+		$(document).ready(function(){
+			$('select').formSelect();
+			$('#yes-button').on('click', function(e) {
+				e.preventDefault();
+				console.log('Entered yes-button function');
+				$('#upload-btn').prop('disabled', true);
+				$('.progress').show();
+				$('#form')[0].submit();
+			});
+			$('#no-button').on('click', function(e) {
+				e.preventDefault();
+				console.log('Entered no-button function');
+				$("input[type=hidden][name=dont_delete_card]").val('true');
+				$('#upload-btn').prop('disabled', true);
+				$('.progress').show();
+				$('#form')[0].submit();
+			});
+			$('#upload-btn').on('click', function(e) {
+				e.preventDefault();
+				if ($("#upload_type").val() == 'cards') {
+					$('.modal-content h4').html('Upload CSV');
+					$('.modal-content p').html('Do you want to delete all cards prior to importing?');
+					var instance = M.Modal.getInstance($('.modal').modal());
+					instance.open();
+				}
+			});
+		});
+	</script>
+{% endblock %}

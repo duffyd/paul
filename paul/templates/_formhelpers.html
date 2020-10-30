@@ -1,0 +1,43 @@
+{% macro render_field(field) %}
+	{% if field.type == 'BooleanField' %}
+		<p>
+			<label class="active" for="{{ field.id }}">
+				{% if field.errors %}
+					{{ field(class="validate invalid")|safe }}
+				{% else %}
+					{{ field(class="validate")|safe }}
+				{% endif %}
+				<span>{{ field.label }}</span>
+				<span class="helper-text"
+					{% if field.errors %}
+						data-error="{{ field.errors|join(', ') }}"
+					{% endif %}
+				/>
+			</label>
+		</p>
+	{% else %}
+		{% if field.id != 'csrf_token' %}
+			<div class="input-field">
+				{% if field.type in ('GeomField', 'TextAreaField') or field.id == 'agenda' %}
+					{% if field.errors %}
+						{{ field(class="validate materialize-textarea invalid")|safe }}
+					{% else %}
+						{{ field(class="validate materialize-textarea")|safe }}
+					{% endif %}
+				{% else %}
+					{% if field.errors %}
+						{{ field(class="validate invalid")|safe }}
+					{% else %}
+						{{ field(class="validate")|safe }}
+					{% endif %}
+				{% endif %}
+				{{ field.label(class="active")|safe }}
+				<span class="helper-text"
+					{% if field.errors %}
+						data-error="{{ field.errors|join(', ') }}"
+					{% endif %}
+				/>
+			</div>
+		{% endif %}
+	{% endif %}
+{% endmacro %}

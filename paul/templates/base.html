@@ -1,0 +1,94 @@
+<!doctype html>
+<head>
+	{% from "_baseresourcescontent.html" import base_css_js, nav_bar %}
+	<meta charset="utf-8" />
+	<link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+	<link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	{{ base_css_js() }}
+	{% block header %}{% endblock %}
+</head>
+{{ nav_bar(current_user) }}
+<div{% if game_id %} class="map"{% else %} class="container"{% endif %}>
+	{% block content %}{% endblock %}
+	<div id="modal1" class="modal">
+	<div class="modal-content">
+		<h4>Title</h4>
+		<p class="flow-text">A bunch of text</p>
+	</div>
+	<div class="modal-footer">
+		<a href="#!" id="submit-button" class="modal-close waves-effect waves-green btn-flat">Submit</a>
+	</div>
+</div>
+</div>
+
+<script>
+	function detectMobile() {
+		let isMobile = RegExp(/Android|webOS|iPhone|iPod|iPad/i).test(navigator.userAgent);
+		if (!isMobile) {
+			const isMac = RegExp(/Macintosh/i).test(navigator.userAgent);
+			if (isMac && navigator.maxTouchPoints && navigator.maxTouchPoints > 2) {
+				isMobile = true;
+			}
+		}
+		return isMobile;
+	}
+
+	$(document).ready(function() {
+		var isSafari = /constructor/i.test(window.HTMLElement) || (function (p) { return p.toString() === "[object SafariRemoteNotification]"; })(!window['safari'] || (typeof safari !== 'undefined' && safari.pushNotification));
+		var isChrome = !!window.chrome && (!!window.chrome.webstore || !!window.chrome.runtime);
+		{% if current_user.is_anonymous %}
+			if (!detectMobile()) {
+				if (!isSafari && !isChrome) {
+					console.log("Browser isn't Safari or Chrome");
+					$('.modal-content h4').html('Web Browser');
+					$('.modal-content p').html('This site is designed to work with Apple Safari or Google Chrome. Please reopen the site using one of these web browsers');
+					$('#submit-button').html('OK');
+					var instance = M.Modal.getInstance($('.modal').modal());
+					instance.open();
+				}
+			}
+		{% endif %}
+		{% for message in get_flashed_messages() %}
+			M.toast({html: '{{ message }}'});
+		{% endfor %}
+		if (detectMobile()) {
+			$('select').addClass('browser-default');
+		}
+		{% if not game_id %}
+			$('select').formSelect();
+		{% endif %}
+		var itemtype = null;
+		var href = window.location.href;
+		if (href.indexOf('/list-') > -1) {
+			itemtype = href.slice(href.indexOf('/list-')+6, href.length-1);
+		}
+		if (itemtype) {
+			$('.del-item').on('click', function(e) {
+				e.preventDefault();
+				var itemid = $(this).attr('id').slice('del-'.search()+4);
+				$.ajax({
+					url: '/del-item',
+					method: 'POST',
+					dataType: 'json',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					data: JSON.stringify({"itemid": itemid, "itemtype": itemtype}),
+					itemid: itemid
+				}).fail(function(response) {
+					console.log("Error", response);
+				}).done(function(response) {
+					M.toast({html: response.msg});
+					$(`#del-${this.itemid}`).closest('tr').remove();
+				});
+			});
+			$('.edit-item').on('click', function(e) {
+				e.preventDefault();
+				var itemid = $(this).attr('id').slice('edit-'.search()+5);
+				window.location.href = `/${itemtype}/edit/${itemid}`
+			});
+		}
+	});
+</script>
