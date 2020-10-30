@@ -22,3 +22,10 @@
 * You always need 1 food, and 1 money resource. If not, it is game over
 * When you pass Antioch (Syria), you get 1 food and 1 money
 * If you land on Tarsus or Paphos, you also get 1 food & 1 money
+
+## Main Technologies Used
+
+* [Flask](https://palletsprojects.com/p/flask/)
+* [Leaflet](http://leafletjs.com)
+* [Materialize](https://materializecss.com)
+* [Pleiades](https://pleiades.stoa.org)
