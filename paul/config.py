@@ -2,7 +2,7 @@ import os
 
 class Config(object):
     SQLALCHEMY_DATABASE_URI='postgresql://{}:{}@{}:{}/{}'.format(
-        "postgres",
+        "paul",
         "password",
         "localhost",
         5432,
