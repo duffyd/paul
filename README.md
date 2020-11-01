@@ -13,7 +13,7 @@
 ## Detailed Rules
 
 * Pick which missionary tour - 1, 2 or 3
-* At the beginning you receive 1 elder, 2 food, 2 money resources
+* At the beginning you receive 2 believers, 2 food, 2 money resources
 * You have to complete all missions for your selected missionary tour
 * On your turn you throw the dice and your player moves the number of places on the dice. Depending on where you land you either face a land/sea trial or have a pop quiz. These are randomly selected
 * Places have associated trials & pop quizzes. If you guess a pop quiz correctly, you receive 1 believer. If you can’t guess, there are no penalties
