@@ -7,7 +7,6 @@ Create Date: 2020-09-24 21:03:24.059316
 """
 from alembic import op
 import sqlalchemy as sa
-import geoalchemy2.types
 
 # revision identifiers, used by Alembic.
 revision = '93dc6938b735'
@@ -23,7 +22,7 @@ def upgrade():
     sa.Column('username', sa.String(length=64), nullable=True),
     sa.Column('email', sa.String(length=120), nullable=True),
     sa.Column('password_hash', sa.String(length=128), nullable=True),
-    sa.Column('curpos', geoalchemy2.types.Geometry(geometry_type='POINT', srid=4326, from_text='ST_GeomFromEWKT', name='geometry'), nullable=True),
+    sa.Column('curpos', sa.Integer(), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_user_email'), 'user', ['email'], unique=True)
