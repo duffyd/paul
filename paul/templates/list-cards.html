@@ -23,7 +23,7 @@
 						<a id="del-{{ card.id }}" class="del-item btn-floating btn-small waves-effect waves-light red"><i class="tiny material-icons">delete</i></a></td>
 					<td>{{ card.tour and card.tour or '' }}</td>
 					<td>{{ card.location }}</td>
-					<td>{{ card.type }}</td>
+					<td>{{ card.type and card.type or '' }}</td>
 					<td>{{ card.content }}</td>
 					<td>{{ card.result }}</td>
 					<td>{{ card.score }}</td>

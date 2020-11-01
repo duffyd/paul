@@ -51,8 +51,21 @@ function addResource(e) {
 							M.toast({html: resourceRes.msg});
 							if (resourceRes.updated) {
 								fetch(`/get-game-state?userId=${$('#userId').val()}`)
-								.then(function(response) { return response.json(); })
-								.then(processGameState(gameStateRes, true));
+								.then(function(response) {
+									return response.json();
+								})
+								.then(function(response) {
+									processGameState(response, true);
+								})
+								.then(function(response) {return fetch(`/user/get-user-data?userId=${$('#userId').val()}`);})
+								.then(function(response) {
+									console.log(`Got back user data`);
+									return response.json();
+								})
+								.then(function(userData) {scores.update(userData);})
+								.catch(function(error) {
+									console.log('Request failed', error);
+								});
 							}
 						})
 					}
@@ -219,16 +232,21 @@ function updateCurPos(diceVal) {
 											});
 										} else {
 											console.log('Got incorrect answer', $('#answer').val());
-											var result;
-											if (cardData.more_info) {
-												var moreinfo = $(cardData.more_info).attr('target', '_blank');
-												result = `${cardData.result}<br />${moreinfo}`;
-											} else {
-												result = cardData.result;
-											}
-											$('.modal-content p').html(`You answered incorrectly. The anwer was:<br />${result}`);
-											$('#submit-button').html('OK');
-											instance.open();
+											$.when(
+												$.getJSON(`/card/handle-wrong-answer?userId=${$('#userId').val()}&cardId=${cardData.id}`)
+											).done(function(wrongAnswerRes) {
+												console.log(wrongAnswerRes.msg);
+												var result;
+												if (cardData.more_info) {
+													var moreinfo = cardData.more_info.replace(/<[\/]{0,1}(p)[^><]*>/ig,"");
+													result = `${cardData.result}<br />${$(moreinfo).attr('target', '_blank').prop('outerHTML')}`;
+												} else {
+													result = cardData.result;
+												}
+												$('.modal-content p').html(`You answered incorrectly. The answer was:<br />${result}`);
+												$('#submit-button').html('OK');
+												instance.open();
+											});
 										}
 									}
 								} else {

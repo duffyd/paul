@@ -70,7 +70,7 @@ function init() {
 			var scoresStr;
 			if (props) {
 				scoresStr = "<span class='heading indigo-text text-darken-2'>My Scores</span><br/>";
-				scoresStr += `<span>&#x1F9CE; ${props.score.b} &#x1F6D0; ${props.score.c} &#x1F474; ${props.score.e} &#x1F4B0; ${props.score.s} &#x1F35E; ${props.score.f}</span><br/>`;
+				scoresStr += `<span>&#x1F9CE; ${props.score.b} &#x1F4B0; ${props.score.s} &#x1F35E; ${props.score.f}</span><br/>`;
 				scoresStr += "<span class='heading indigo-text text-darken-2'>My Mission</span><br/>";
 				if (props.sel_tour == '3') {
 					scoresStr += `<span>&#x1F6D0; ${props.mission_done.c}/${props.mission.c} &#x1F474; ${props.mission_done.e}/${props.mission.e} &#x1F4B0; ${props.mission_done.s}/${props.mission.s}</span><br/>`;
@@ -82,9 +82,9 @@ function init() {
 					scoresStr += `<span class='subheading'>${player} Score</span><br/>`;
 					var playerdata = props.player_data[player];
 					if (playerdata.game_over) {
-						scoresStr += `<span class='indigo-text text-darken-2 game-over'><span>&#x1F9CE; ${playerdata.score.b} &#x1F6D0; ${playerdata.score.c} &#x1F474; ${playerdata.score.e} &#x1F4B0; ${playerdata.score.s} &#x1F35E; ${playerdata.score.f}</span></span><br/>`;
+						scoresStr += `<span class='indigo-text text-darken-2 game-over'><span>&#x1F9CE; ${playerdata.score.b} &#x1F4B0; ${playerdata.score.s} &#x1F35E; ${playerdata.score.f}</span></span><br/>`;
 					} else {
-						scoresStr += `<span>&#x1F9CE; ${playerdata.score.b} &#x1F6D0; ${playerdata.score.c} &#x1F474; ${playerdata.score.e} &#x1F4B0; ${playerdata.score.s} &#x1F35E; ${playerdata.score.f}</span><br/>`;
+						scoresStr += `<span>&#x1F9CE; ${playerdata.score.b} &#x1F4B0; ${playerdata.score.s} &#x1F35E; ${playerdata.score.f}</span><br/>`;
 					}
 				}
 				scoresStr += `<span class='heading indigo-text text-darken-2'>User Turn: </span>${props.userturn}`;
@@ -184,78 +184,81 @@ function init() {
 	});
 }
 
-function processGameState(gameStateRes, adding_res = false) {
+function processGameState(gameStateRes, adding_res=false) {
 	$('#dice-box').hide();
-	if (gameStateRes.won) {
-		console.log('Game over');
-		realtime.stop();
-		$('.modal-content h4').html(`Game Over`);
-		$('.modal-content p').html(gameStateRes.msg);
-		$('#submit-button').html('OK');
-		var instance = M.Modal.getInstance($('.modal').modal());
-		instance.open();
+	console.log('Got back player geopts');
+	var geopts = gameStateRes.geopts;
+	if (adding_res || gameStateRes.won) {
+		displayGeopts(geopts);
+		if (gameStateRes.won) {
+			console.log('Game over');
+			realtime.stop();
+			$('.modal-content h4').html(`Game Over`);
+			$('.modal-content p').html(gameStateRes.msg);
+			$('#submit-button').html('OK');
+			var instance = M.Modal.getInstance($('.modal').modal());
+			instance.open();
+		}
+		return 'all done'
 	} else {
-		console.log('Got back player geopts');
-		var geopts = gameStateRes;
 		$.when(
 			$.getJSON(`/user/get-user-data?userId=${$('#userId').val()}`)
 		).done(function(userData) {
-			for (var idx = 0; idx < geopts.length; idx++) {
-				if (geopts[idx].properties.username) {
-					console.log('realtimeMarkers', realtimeMarkers);
-					if (geopts[idx].properties.username == userData.username) {
-						console.log('My player record');
-						if (geopts[idx].properties.userturn == userData.username) {
-							console.log("It's my turn!");
-							$.when(
-								$.getJSON(`/user/get-user-data?userId=${$('#userId').val()}`)
-							).done(function(userData) {
-								console.log(`Got back user data`);
-								scores.update(userData);
-							});
-							if (!adding_res) {
-								$('#roll-dice').removeClass('disabled').addClass('btn-floating blue');
-								$('#add-cong').removeClass('disabled').addClass('btn-floating blue');
-								$('#next-player').removeClass('disabled').addClass('btn-floating blue');
-								if (userData.sel_tour == '3') {
-									$('#add-elder').removeClass('disabled').addClass('btn-floating blue');
-								} else {
-									$('#add-believer').removeClass('disabled').addClass('btn-floating blue');
-								}
-								realtime.stop();
-							}
-						}
-					} else {
-						if (realtimeMarkers.hasOwnProperty(geopts[idx].properties.id)) {
-							console.log(`${realtimeMarkers[geopts[idx].properties.id]._latlng.lng}, ${realtimeMarkers[geopts[idx].properties.id]._latlng.lat} AND ${geopts[idx].geometry.coordinates[0]}, ${geopts[idx].geometry.coordinates[1]}`);
-							if (`${realtimeMarkers[geopts[idx].properties.id]._latlng.lng}, ${realtimeMarkers[geopts[idx].properties.id]._latlng.lat}` != `${geopts[idx].geometry.coordinates[0]}, ${geopts[idx].geometry.coordinates[1]}`) {
-								map.removeLayer(realtimeMarkers[geopts[idx].properties.id]);
-								var icon = L.icon({iconUrl: colouriseSVG(playerMarker, tourColours[geopts[idx].properties.sel_tour].player), iconSize: [48, 48]});
-								realtimeMarkers[geopts[idx].properties.id] = L.marker([geopts[idx].geometry.coordinates[1], geopts[idx].geometry.coordinates[0]], {title: geopts[idx].properties.username, icon: icon, pane: 'playerMarkers'}).addTo(map);
-								realtimeMarkers[geopts[idx].properties.id].bindTooltip(geopts[idx].properties.username, {'permanent': true, 'pane': 'tooltips'});
-							}
+			displayGeopts(geopts, userData)
+		});
+	}
+}
+
+function displayGeopts(geopts, userData=null) {
+	for (var idx = 0; idx < geopts.length; idx++) {
+		if (geopts[idx].properties.username) {
+			console.log('realtimeMarkers', realtimeMarkers);
+			if (geopts[idx].properties.id == $('#userId').val()) {
+				console.log('My player record');
+				if (geopts[idx].properties.userturn == $('#userId').val()) {
+					console.log("It's my turn!");
+					if (userData) {
+						scores.update(userData);
+						$('#roll-dice').removeClass('disabled').addClass('btn-floating blue');
+						$('#add-cong').removeClass('disabled').addClass('btn-floating blue');
+						$('#next-player').removeClass('disabled').addClass('btn-floating blue');
+						if (userData.sel_tour == '3') {
+							$('#add-elder').removeClass('disabled').addClass('btn-floating blue');
 						} else {
-							var icon = L.icon({iconUrl: colouriseSVG(playerMarker, tourColours[geopts[idx].properties.sel_tour].player), iconSize: [48, 48]});
-							realtimeMarkers[geopts[idx].properties.id] = L.marker([geopts[idx].geometry.coordinates[1], geopts[idx].geometry.coordinates[0]], {title: geopts[idx].properties.username, icon: icon, pane: 'playerMarkers'}).addTo(map);
-							realtimeMarkers[geopts[idx].properties.id].bindTooltip(geopts[idx].properties.username, {'permanent': true, 'pane': 'tooltips'});
+							$('#add-believer').removeClass('disabled').addClass('btn-floating blue');
 						}
-					}
-				} else {
-					if (geopts[idx].properties.name.indexOf('Believer') > -1) {
-						var icon = L.icon({iconUrl: colouriseSVG(believerSVG, tourColours[geopts[idx].properties.sel_tour].resource), iconSize: [36, 36]});
-						realtimeMarkers[geopts[idx].properties.id] = L.marker([geopts[idx].geometry.coordinates[1], geopts[idx].geometry.coordinates[0]], {title: geopts[idx].properties.name, icon: icon, pane: 'resMarkers'}).addTo(map);
-						realtimeMarkers[geopts[idx].properties.id].bindPopup(`<div>${geopts[idx].properties.name}</div>`, {'pane': 'popups'});
-					} else if (geopts[idx].properties.name.indexOf('Elder') > -1) {
-						var icon = L.icon({iconUrl: colouriseSVG(elderSVG, tourColours[geopts[idx].properties.sel_tour].resource), iconSize: [36, 36]});
-						realtimeMarkers[geopts[idx].properties.id] = L.marker([geopts[idx].geometry.coordinates[1], geopts[idx].geometry.coordinates[0]], {title: geopts[idx].properties.name, icon: icon, pane: 'resMarkers'}).addTo(map);
-						realtimeMarkers[geopts[idx].properties.id].bindPopup(`<div>${geopts[idx].properties.name}</div>`, {'pane': 'popups'});
-					} else if (geopts[idx].properties.name.indexOf('Congregation') > -1) {
-						var icon = L.icon({iconUrl: colouriseSVG(congSVG, tourColours[geopts[idx].properties.sel_tour].resource), iconSize: [36, 36]});
-						realtimeMarkers[geopts[idx].properties.id] = L.marker([geopts[idx].geometry.coordinates[1], geopts[idx].geometry.coordinates[0]], {title: geopts[idx].properties.name, icon: icon, pane: 'resMarkers'}).addTo(map);
-						realtimeMarkers[geopts[idx].properties.id].bindPopup(`<div>${geopts[idx].properties.name}</div>`, {'pane': 'popups'});
+						realtime.stop();
 					}
 				}
+			} else {
+				if (realtimeMarkers.hasOwnProperty(geopts[idx].properties.id)) {
+					console.log(`${realtimeMarkers[geopts[idx].properties.id]._latlng.lng}, ${realtimeMarkers[geopts[idx].properties.id]._latlng.lat} AND ${geopts[idx].geometry.coordinates[0]}, ${geopts[idx].geometry.coordinates[1]}`);
+					if (`${realtimeMarkers[geopts[idx].properties.id]._latlng.lng}, ${realtimeMarkers[geopts[idx].properties.id]._latlng.lat}` != `${geopts[idx].geometry.coordinates[0]}, ${geopts[idx].geometry.coordinates[1]}`) {
+						map.removeLayer(realtimeMarkers[geopts[idx].properties.id]);
+						var icon = L.icon({iconUrl: colouriseSVG(playerMarker, tourColours[geopts[idx].properties.sel_tour].player), iconSize: [48, 48]});
+						realtimeMarkers[geopts[idx].properties.id] = L.marker([geopts[idx].geometry.coordinates[1], geopts[idx].geometry.coordinates[0]], {title: geopts[idx].properties.username, icon: icon, pane: 'playerMarkers'}).addTo(map);
+						realtimeMarkers[geopts[idx].properties.id].bindTooltip(geopts[idx].properties.username, {'permanent': true, 'pane': 'tooltips'});
+					}
+				} else {
+					var icon = L.icon({iconUrl: colouriseSVG(playerMarker, tourColours[geopts[idx].properties.sel_tour].player), iconSize: [48, 48]});
+					realtimeMarkers[geopts[idx].properties.id] = L.marker([geopts[idx].geometry.coordinates[1], geopts[idx].geometry.coordinates[0]], {title: geopts[idx].properties.username, icon: icon, pane: 'playerMarkers'}).addTo(map);
+					realtimeMarkers[geopts[idx].properties.id].bindTooltip(geopts[idx].properties.username, {'permanent': true, 'pane': 'tooltips'});
+				}
 			}
-		});
+		} else {
+			if (geopts[idx].properties.name.indexOf('Believer') > -1) {
+				var icon = L.icon({iconUrl: colouriseSVG(believerSVG, tourColours[geopts[idx].properties.sel_tour].resource), iconSize: [36, 36]});
+				realtimeMarkers[geopts[idx].properties.id] = L.marker([geopts[idx].geometry.coordinates[1], geopts[idx].geometry.coordinates[0]], {title: geopts[idx].properties.name, icon: icon, pane: 'resMarkers'}).addTo(map);
+				realtimeMarkers[geopts[idx].properties.id].bindPopup(`<div>${geopts[idx].properties.name}</div>`, {'pane': 'popups'});
+			} else if (geopts[idx].properties.name.indexOf('Elder') > -1) {
+				var icon = L.icon({iconUrl: colouriseSVG(elderSVG, tourColours[geopts[idx].properties.sel_tour].resource), iconSize: [36, 36]});
+				realtimeMarkers[geopts[idx].properties.id] = L.marker([geopts[idx].geometry.coordinates[1], geopts[idx].geometry.coordinates[0]], {title: geopts[idx].properties.name, icon: icon, pane: 'resMarkers'}).addTo(map);
+				realtimeMarkers[geopts[idx].properties.id].bindPopup(`<div>${geopts[idx].properties.name}</div>`, {'pane': 'popups'});
+			} else if (geopts[idx].properties.name.indexOf('Congregation') > -1) {
+				var icon = L.icon({iconUrl: colouriseSVG(congSVG, tourColours[geopts[idx].properties.sel_tour].resource), iconSize: [36, 36]});
+				realtimeMarkers[geopts[idx].properties.id] = L.marker([geopts[idx].geometry.coordinates[1], geopts[idx].geometry.coordinates[0]], {title: geopts[idx].properties.name, icon: icon, pane: 'resMarkers'}).addTo(map);
+				realtimeMarkers[geopts[idx].properties.id].bindPopup(`<div>${geopts[idx].properties.name}</div>`, {'pane': 'popups'});
+			}
+		}
 	}
 }

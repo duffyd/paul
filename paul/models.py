@@ -2,9 +2,9 @@ import json
 import os
 from datetime import datetime
 from flask_login import UserMixin
-from geoalchemy2.types import Geometry
 from werkzeug.security import generate_password_hash, check_password_hash
 from wtforms import SelectField, TextAreaField
+from wtforms.validators import Length
 from paul import db
 from paul import login
 from paul.config import INITIAL_SCORE, CARD_TYPES

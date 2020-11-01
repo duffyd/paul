@@ -3,7 +3,7 @@
 {% block content %}
 	<h2>{% block title %}{{ title }}{% endblock %}</h2>
 	{% from "_formhelpers.html" import render_field %}
-	<form method="POST">
+	<form method="POST" novalidate>
 		{{ form.hidden_tag() }}
 		{% for field in form %}
 			{% if field.type != 'SubmitField' %}

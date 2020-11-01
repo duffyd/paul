@@ -44,7 +44,6 @@ class RegistrationForm(FlaskForm):
 class UserForm(ModelForm):
     class Meta:
         model = User
-        #exclude = ['created_at']
         
     submit = SubmitField('Save')
     

@@ -203,18 +203,11 @@ def pay_for_res(resource, score, updated):
         score[resource] -= 1
         updated = True
     elif resource == 'e':
-        if score[resource] > 0:
-            score[resource] -= 1
-            updated = True
-        elif score['b'] >= 2:
+        if score['b'] >= 2:
             score['b'] -= 2
             updated = True
     elif resource == 'c':
-        if score['e'] >= 1 and score['b'] >= 1:
-            score['b'] -= 1
-            score['e'] -= 1
-            updated = True
-        elif score['b'] >= 3:
+        if score['b'] >= 3:
             score['b'] -= 3
             updated = True
     return score, updated
@@ -282,7 +275,10 @@ def next_user_turn():
     userturn = UserTurn.query.filter_by(game_id=str(user.created_at.toordinal())).first()
     completed = True
     for mission in MISSIONS[user.sel_tour].keys():
-        if eval(user.score)[mission] < MISSIONS[user.sel_tour][mission]:
+        if mission != 's':
+            if sum(eval(getattr(user, '{}_places'.format(mission))).values()) < MISSIONS[user.sel_tour][mission]:
+                completed = False
+        elif eval(user.score)[mission] < MISSIONS[user.sel_tour][mission]:
             completed = False
     if completed:
         userturn.won = user.username
@@ -393,7 +389,21 @@ def handle_right_answer():
         'player_data': player_data,
         'userturn': userturn.user and userturn.user.username or None
     }), 200
-                                
+
+@app.route('/card/handle-wrong-answer', methods=['GET'])
+def handle_wrong_answer():
+    msg = 'Successfully processed wrong answer'
+    user = User.query.filter_by(id=int(request.args.get('userId'))).first_or_404()
+    cardid = int(request.args.get('cardId'))
+    seen_cards = eval(user.seen_cards)
+    if not cardid in seen_cards:
+        seen_cards.append(cardid)
+        user.seen_cards = str(seen_cards)
+        db.session.commit()
+        msg = 'Successfully updated seen_cards for {}'.format(user.username)
+    logger.info(msg)
+    return jsonify({'msg': msg}), 200
+    
 @app.route('/card/get-card', methods=['GET'])
 def get_card():
     start_time = datetime.now()
@@ -637,10 +647,13 @@ def card_edit(card_id):
         abort(403)
     card = Card.query.filter_by(id=card_id).first()
     form = CardForm(obj=card)
-    if request.method == 'POST' and form.validate():
-        form.populate_obj(card)
-        db.session.commit()
-        flash('Card saved')
+    if form.validate_on_submit():
+        if form.type.data in ['', None]:
+            flash('You must select a card type')
+        else:
+            form.populate_obj(card)
+            db.session.commit()
+            flash('Card saved')
     return render_template(
         'item.html',
         form=form,
@@ -658,19 +671,22 @@ def card_add():
         abort(403)
     form = CardForm()
     if form.validate_on_submit():
-        newcard = Card(
-            tour=form.tour.data,
-            location=form.location.data,
-            type=form.type.data,
-            content=form.content.data,
-            result=form.result.data,
-            more_info=form.more_info.data,
-            score=form.score.data,
-        )
-        db.session.add(newcard)
-        db.session.commit()
-        flash('{:s} card has been created'.format(form.type.data), 'success')
-        return redirect(url_for("card_edit", card_id=newcard.id))
+        if form.type.data in ['', None]:
+            flash('You must select a card type')
+        else:
+            newcard = Card(
+                tour=form.tour.data,
+                location=form.location.data,
+                type=form.type.data,
+                content=form.content.data,
+                result=form.result.data,
+                more_info=form.more_info.data,
+                score=form.score.data,
+            )
+            db.session.add(newcard)
+            db.session.commit()
+            flash('{:s} card has been created'.format(form.type.data), 'success')
+            return redirect(url_for("card_edit", card_id=newcard.id))
     return render_template(
         'item.html',
         form=form,
@@ -679,10 +695,13 @@ def card_add():
 
 @app.route('/get-game-state', methods=['GET', 'POST'])
 def get_game_state():
+    won = False
+    msg = ''
     user = User.query.filter_by(id=int(request.args.get('userId'))).first_or_404()
     userturn = UserTurn.query.filter_by(game_id=str(user.created_at.toordinal())).first()
     if hasattr(userturn, 'won') and getattr(userturn, 'won') not in ['', None]:
-        return jsonify({'msg': "{} has won!".format(userturn.won), 'won': True}), 200 
+        msg = "{} has won!".format(userturn.won)
+        won = True 
     players = User.query.filter(
         extract('month', User.created_at) == user.created_at.month,
         extract('year', User.created_at) == user.created_at.year,
@@ -690,7 +709,7 @@ def get_game_state():
     ).order_by(User.id).all()
     geopts = []
     for player in players:
-        geopts.append({'type': 'Feature', 'properties': {'id': str(player.id), 'sel_tour': player.sel_tour, 'userturn': userturn.user.username, 'username': player.username}, 'geometry': mapping(Point(tours[player.sel_tour][player.curpos]['lng'], tours[player.sel_tour][player.curpos]['lat']))})
+        geopts.append({'type': 'Feature', 'properties': {'id': str(player.id), 'sel_tour': player.sel_tour, 'userturn': str(userturn.user.id), 'username': player.username}, 'geometry': mapping(Point(tours[player.sel_tour][player.curpos]['lng'], tours[player.sel_tour][player.curpos]['lat']))})
         if player.sel_tour == '3':
             resources = [dict(name='Believer', attrib='b_places'), dict(name='Elder', attrib='e_places'), dict(name='Congregation', attrib='c_places')]
         else:
@@ -700,7 +719,7 @@ def get_game_state():
             for place in user_res.keys():
                 place_data = next((item for item in tours[player.sel_tour] if item["name"] == place), None)
                 geopts.append({'type': 'Feature', 'properties': {'id': "{}{}".format(str(player.id), place), 'sel_tour': player.sel_tour, 'name': "{}{} ({})".format(resource['name'], user_res[place] > 1 and 's' or '', user_res[place])}, 'geometry': mapping(Point(place_data['lng'], place_data['lat']))})
-    return jsonify(geopts), 200
+    return jsonify({'geopts': geopts, 'won': won, 'msg': msg}), 200
 
 @app.route('/fixup', methods=['GET', 'POST'])
 @login_required
@@ -711,31 +730,9 @@ def fixup():
             abort(403)
     else:
         abort(403)
-    users = User.query.all()
-    idx = 0
-    for user in users:
-        user.curpos = 0
-        user.score = str(INITIAL_SCORE)
-        user.seen_cards = str([])
-        user.b_places = str({})
-        user.e_places = str({})
-        user.c_places = str({})
-        idx += 1
-    userturn = UserTurn.query.filter_by(game_id=str(current_user.created_at.toordinal())).first()
-    players = User.query.filter(
-        extract('month', User.created_at) == current_user.created_at.month,
-        extract('year', User.created_at) == current_user.created_at.year,
-        extract('day', User.created_at) == current_user.created_at.day
-    ).order_by(User.id).all()
-    if not userturn:
-        userturn = UserTurn(
-            game_id=str(current_user.created_at.toordinal()),
-            user=players[0]
-        )
-        db.session.add(userturn)
-    else:
-        userturn.user = players[0]
-        userturn.game_over = str([])
+    user = User.query.filter_by(username='duffyd').first_or_404()
+    userturn = UserTurn.query.filter_by(game_id=str(user.created_at.toordinal())).first()
+    userturn.won = ''
     db.session.commit()
-    logger.info('Updated %d users', idx)
-    return redirect(url_for('index')+'?g='+str(current_user.created_at.toordinal()))
+    logger.info('Updated userturn for %s', user.username)
+    return redirect(url_for('list_users'))
