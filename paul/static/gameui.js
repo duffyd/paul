@@ -199,12 +199,19 @@ function updateCurPos(diceVal) {
 			console.log('got back card data', cardDataRes[0]);
 			if (cardDataRes[0].score != null) {
 				cardData = cardDataRes[0];
-				$('.modal-content h4').html('Card');
+				var content;
+				if (cardData.content.toLowerCase().startsWith('bonus:')) {
+					$('.modal-content h4').html('Bonus Quiz Card');
+					content = cardData.content.slice(6);
+				} else {
+					$('.modal-content h4').html('Card');
+					content = cardData.content;
+				}
 				if (['Sea Trial', 'Land Trial', 'City Trial'].includes(cardData.type)) {
-					$('.modal-content p').html(`${cardData.content}<br />${cardData.result}`);
+					$('.modal-content p').html(`${content}<br />${cardData.result}`);
 					$('#submit-button').html('OK');
 				} else {
-					$('.modal-content p').html(cardData.content);
+					$('.modal-content p').html(content);
 					$('#submit-button').html('SUBMIT');
 				}
 				if (detectMobile()) {

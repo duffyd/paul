@@ -283,7 +283,7 @@ def next_user_turn():
     if completed:
         userturn.won = user.username
         db.session.commit()
-        return jsonify({'msg': "{} has won!".format(userturn.won), 'won': True}), 200
+        return jsonify({'msg': "{} has won 🏆!".format(userturn.won), 'won': True}), 200
     players = User.query.filter(
         extract('month', User.created_at) == user.created_at.month,
         extract('year', User.created_at) == user.created_at.year,
@@ -700,7 +700,7 @@ def get_game_state():
     user = User.query.filter_by(id=int(request.args.get('userId'))).first_or_404()
     userturn = UserTurn.query.filter_by(game_id=str(user.created_at.toordinal())).first()
     if hasattr(userturn, 'won') and getattr(userturn, 'won') not in ['', None]:
-        msg = "{} has won!".format(userturn.won)
+        msg = "{} has won 🏆!".format(userturn.won)
         won = True 
     players = User.query.filter(
         extract('month', User.created_at) == user.created_at.month,
