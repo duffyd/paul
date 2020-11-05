@@ -525,10 +525,7 @@ def upload_csv():
                 logger.info('Successfully deleted %d card(s)', num_rows_deleted)
             for i, row in enumerate(filereader):
                     if i >= 1:
-                        if row[1] in ['Land Trial', 'Quiz', 'Sea Trial']:
-                            cardexists = Card.query.filter_by(content=row[2]).first()
-                        else:
-                            cardexists = Card.query.filter_by(location=row[0], type=row[1], tour=row[5]).first()
+                        cardexists = Card.query.filter_by(content=row[2]).first()
                         if not cardexists:
                             try:
                                 card = Card(
